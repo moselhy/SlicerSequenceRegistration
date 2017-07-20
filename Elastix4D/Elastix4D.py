@@ -271,7 +271,7 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
 
 
         tmpTransform = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")
-        self.tempNodes.append(tmpTransform)
+        # self.tempNodes.append(tmpTransform)
 
         # v1 = slicer.util.loadVolume(r'C:\Users\Moselhy\Downloads\v1.nrrd', returnNode=True)[1]
         # v2 = slicer.util.loadVolume(r'C:\Users\Moselhy\Downloads\v2.nrrd', returnNode=True)[1]
@@ -287,6 +287,7 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
           )
 
         outputTransform = outputTransformSeq.SetDataNodeAtValue(tmpTransform, str(self.outputSeqIndex))
+        slicer.mrmlScene.AddNode(outputTransform)
 
 
         for i in range(len(self.tempNodes)):
