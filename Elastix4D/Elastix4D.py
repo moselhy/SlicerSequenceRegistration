@@ -238,7 +238,6 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
     self.statusLabel.appendPlainText(text)
     slicer.app.processEvents()  # force update
 
-<<<<<<< HEAD
   def getNextMove(self):
     self.fixedIndex += self.inputStepSize.value
     self.movingIndex += 1
@@ -293,8 +292,6 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
   #     self.movingBrowserNode.SetAndObserveMasterSequenceNodeID(self.inputSelector.currentNode().GetID())
   #     self.movingBrowserNode.SetSelectedItemNumber(0)
 
-=======
->>>>>>> 12824896e242b206e52cc24de4228c70c336a0cf
 #
 # Elastix4DLogic
 #
