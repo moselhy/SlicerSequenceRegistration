@@ -20,13 +20,11 @@ class Elastix4D(ScriptedLoadableModule):
     self.parent.dependencies = []
     self.parent.contributors = ["Mohamed Moselhy (Western University)"] # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
-This is an example of scripted loadable module bundled in an extension.
-It performs a simple thresholding on the input volume and optionally captures a screenshot.
+    TODO
 """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
+    TODO
 """ # replace with organization, grant and thanks.
 
 #
@@ -115,6 +113,8 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
     self.outputTransformSelector.setMRMLScene( slicer.mrmlScene )
     self.outputTransformSelector.setToolTip( "(optional) Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output object (transform and/or output volume)." )
     parametersFormLayout.addRow("Output transform: ", self.outputTransformSelector)
+
+    self.outputTransformBrowser = None
 
 
     # 
@@ -224,7 +224,7 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
     if not self.registrationInProgress:
       self.applyButton.text = "Register"
       return
-    # self.updateBrowsers()
+    self.updateBrowsers()
 
   def onApplyButton(self):
     # Refresh variables
@@ -344,7 +344,12 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
       srcVol = srcSeq.GetDataNodeAtValue(str(i))
       outputSequence.SetDataNodeAtValue(srcVol, str(i))
 
-  # def updateBrowsers(self):
+  def updateBrowsers(self):
+    if self.outputTransformSelector.currentNode() and not self.outputTransformBrowser:
+      self.outputVolumeBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
+      self.outputVolumeBrowser.SetAndObserveMasterSequenceNodeID(self.outputTransformSelector.currentNode().GetID())
+      self.outputVolumeBrowser.SetSelectedItemNumber(0)
+
   #   if self.outputVolumesSelector.currentNode() and not self.outputVolumeBrowser:
   #     self.outputVolumeBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
   #     self.outputVolumeBrowser.SetAndObserveMasterSequenceNodeID(self.outputVolumesSelector.currentNode().GetID())
