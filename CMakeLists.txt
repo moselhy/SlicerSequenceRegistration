@@ -4,13 +4,13 @@ project(SequenceRegistration)
 
 #-----------------------------------------------------------------------------
 # Extension meta-information
-set(EXTENSION_HOMEPAGE "http://slicer.org/slicerWiki/index.php/Documentation/Nightly/Extensions/SequenceRegistration")
+set(EXTENSION_HOMEPAGE "https://github.com/moselhy/SequenceRegistration")
 set(EXTENSION_CATEGORY "Registration")
-set(EXTENSION_CONTRIBUTORS "Mohamed Moselhy (Western University)")
-set(EXTENSION_DESCRIPTION "This will register a multi-volume sequence using Elastix or user-defined presets")
-set(EXTENSION_ICONURL "http://www.example.com/Slicer/Extensions/SequenceRegistration.png")
-set(EXTENSION_SCREENSHOTURLS "http://www.example.com/Slicer/Extensions/SequenceRegistration/Screenshots/1.png")
-set(EXTENSION_DEPENDS "NA") # Specified as a space separated string, a list or 'NA' if any
+set(EXTENSION_CONTRIBUTORS "Mohamed Moselhy (Western University), Andras Lasso (PerkLab, Queen's University)")
+set(EXTENSION_DESCRIPTION "This will register a multi-volume sequence using Elastix.")
+set(EXTENSION_ICONURL "https://raw.githubusercontent.com/moselhy/SequenceRegistration/master/Elastix4D/Resources/Icons/Elastix4D.png")
+set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/moselhy/SequenceRegistration/master/screenshot.png")
+set(EXTENSION_DEPENDS "Sequence SlicerElastix") # Specified as a space separated string, a list or 'NA' if any
 
 #-----------------------------------------------------------------------------
 # Extension dependencies
