@@ -15,7 +15,7 @@ class SequenceRegistration(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "SequenceRegistration" # TODO make this more human readable by adding spaces
+    self.parent.title = "Sequence Registration" # TODO make this more human readable by adding spaces
     self.parent.categories = ["Registration"]
     self.parent.dependencies = []
     self.parent.contributors = ["Mohamed Moselhy (Western University), Andras Lasso (PerkLab, Queen's University)"] # replace with "Firstname Lastname (Organization)"
