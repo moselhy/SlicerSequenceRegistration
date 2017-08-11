@@ -5,7 +5,7 @@ project(SlicerSequenceRegistration)
 #-----------------------------------------------------------------------------
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "https://github.com/moselhy/SlicerSequenceRegistration")
-set(EXTENSION_CATEGORY "Registration")
+set(EXTENSION_CATEGORY "Sequences")
 set(EXTENSION_CONTRIBUTORS "Mohamed Moselhy (Western University), Andras Lasso (PerkLab, Queen's University)")
 set(EXTENSION_DESCRIPTION "This will register a multi-volume sequence using Elastix.")
 set(EXTENSION_ICONURL "https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/SequenceRegistration/Resources/Icons/SequenceRegistration.png")
