@@ -5,20 +5,20 @@ from slicer.ScriptedLoadableModule import *
 import logging
 
 #
-# Elastix4D
+# SequenceRegistration
 #
 
-class Elastix4D(ScriptedLoadableModule):
+class SequenceRegistration(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Elastix4D" # TODO make this more human readable by adding spaces
+    self.parent.title = "SequenceRegistration" # TODO make this more human readable by adding spaces
     self.parent.categories = ["Registration"]
     self.parent.dependencies = []
-    self.parent.contributors = ["Mohamed Moselhy (Western University)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["Mohamed Moselhy (Western University), Andras Lasso (PerkLab, Queen's University)"] # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
     TODO
 """
@@ -28,10 +28,10 @@ class Elastix4D(ScriptedLoadableModule):
 """ # replace with organization, grant and thanks.
 
 #
-# Elastix4DWidget
+# SequenceRegistrationWidget
 #
 
-class Elastix4DWidget(ScriptedLoadableModuleWidget):
+class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -42,7 +42,7 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
     # Instantiate and connect widgets ...
 
     self.registrationInProgress = False
-    self.logic = Elastix4DLogic()
+    self.logic = SequenceRegistrationLogic()
     self.logic.logCallback = self.addLog
 
     #
@@ -293,10 +293,10 @@ class Elastix4DWidget(ScriptedLoadableModuleWidget):
   #     self.movingBrowserNode.SetSelectedItemNumber(0)
 
 #
-# Elastix4DLogic
+# SequenceRegistrationLogic
 #
 
-class Elastix4DLogic(ScriptedLoadableModuleLogic):
+class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -411,7 +411,7 @@ class Elastix4DLogic(ScriptedLoadableModuleLogic):
         if outputTransformSeq and not self.findBrowserForSequence(outputTransformSeq):
           outputBrowserNode.AddSynchronizedSequenceNodeID(outputTransformSeq.GetID())
 
-class Elastix4DTest(ScriptedLoadableModuleTest):
+class SequenceRegistrationTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   Uses ScriptedLoadableModuleTest base class, available at:
@@ -427,9 +427,9 @@ class Elastix4DTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_Elastix4D1()
+    self.test_SequenceRegistration1()
 
-  def test_Elastix4D1(self):
+  def test_SequenceRegistration1(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
@@ -456,7 +456,7 @@ class Elastix4DTest(ScriptedLoadableModuleTest):
     outputVolume.CreateDefaultDisplayNodes()
 
     import Elastix
-    logic = Elastix4DLogic()
+    logic = SequenceRegistrationLogic()
     parameterFilenames = logic.elastixLogic.getRegistrationPresets()[0][Elastix.RegistrationPresets_ParameterFilenames]
     logic.registerVolumeSequence(tumor1, tumor2, parameterFilenames = parameterFilenames, outputVolumeNode = outputVolume)
 
