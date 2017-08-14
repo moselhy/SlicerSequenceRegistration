@@ -90,9 +90,9 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputSeqIndex = -1
 
 
-    
+    #
     # output transform selector
-    
+    #
     self.outputTransformSelector = slicer.qMRMLNodeComboBox()
     self.outputTransformSelector.nodeTypes = ["vtkMRMLSequenceNode"]
     self.outputTransformSelector.baseName = "OutputTransforms"
