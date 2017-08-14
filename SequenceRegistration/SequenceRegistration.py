@@ -90,9 +90,9 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputSeqIndex = -1
 
 
-    
+    #
     # output transform selector
-    
+    #
     self.outputTransformSelector = slicer.qMRMLNodeComboBox()
     self.outputTransformSelector.nodeTypes = ["vtkMRMLSequenceNode"]
     self.outputTransformSelector.baseName = "OutputTransforms"
@@ -130,16 +130,6 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     # Layout within the dummy collapsible button
     advancedFormLayout = qt.QFormLayout(advancedCollapsibleButton)
 
-
-    #
-    # Step size of input (i.e. register with fixed volume at frame X)
-    #
-
-    label = qt.QLabel('Input Step:')
-    self.inputStepSize = qt.QDoubleSpinBox()
-    self.inputStepSize.value = 0
-    self.inputStepSize.minimum = 0
-    advancedFormLayout.addRow(label, self.inputStepSize)
 
     #
     # fixed frame number value
@@ -197,10 +187,8 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
 
     if numberOfDataNodes < 1:
       self.initialFixedFrame.maximum = 0
-      self.inputStepSize.maximum = 0
     else:
       self.initialFixedFrame.maximum = numberOfDataNodes-1
-      self.inputStepSize.maximum = numberOfDataNodes-1
 
     self.applyButton.enabled = self.inputSelector.currentNode() and self.outputVolumesSelector.currentNode()
 
@@ -242,32 +230,6 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     """
     self.statusLabel.appendPlainText(text)
     slicer.app.processEvents()  # force update
-
-  def getNextMove(self):
-    self.fixedIndex += self.inputStepSize.value
-    self.movingIndex += 1
-    self.outputSeqIndex += 1
-
-    # nextFixedFrameIndex = self.inputVolumeBrowser.SelectNextItem(int(self.inputStepSize.value))
-    # nextMovingFrameIndex = self.movingBrowserNode.SelectNextItem()
-
-    nextFixedFrame = self.inputSelector.currentNode().GetNthDataNode(int(self.fixedIndex))
-    nextMovingFrame = self.inputSelector.currentNode().GetNthDataNode(int(self.movingIndex))
-
-    self.tempNodes.append(nextFixedFrame)
-    self.tempNodes.append(nextMovingFrame)
-
-    nextFixedFrame.SetName("fixedFrame"+str(self.fixedIndex))
-    nextMovingFrame.SetName("movingFrame"+str(self.movingIndex))
-
-    slicer.mrmlScene.AddNode(nextFixedFrame)
-    slicer.mrmlScene.AddNode(nextMovingFrame)
-
-    # If there are no more frames available, return None
-    if self.fixedIndex >= self.numberOfDataNodes:
-      return None, None
-
-    return nextFixedFrame, nextMovingFrame
 
   def copySequences(self, srcSeq, trgSeq, numberOfVols):
     for i in range(numberOfVols):
