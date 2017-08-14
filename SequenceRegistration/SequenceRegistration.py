@@ -67,8 +67,10 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputSelector.showHidden = False
     self.inputSelector.showChildNodeTypes = False
     self.inputSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputSelector.setToolTip( "Pick the input to the algorithm." )
-    parametersFormLayout.addRow("Input Sequence: ", self.inputSelector)
+    label = qt.QLabel("Input volume sequence:")
+    label.setToolTip( "Pick the multivolume sequence as input." )
+    self.inputSelector.setToolTip( "Pick the multivolume sequence as input." )
+    parametersFormLayout.addRow(label, self.inputSelector)
 
     #
     # output volume selector
@@ -83,8 +85,10 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputVolumesSelector.showHidden = False
     self.outputVolumesSelector.showChildNodeTypes = False
     self.outputVolumesSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputVolumesSelector.setToolTip( "Pick the output to the algorithm." )
-    parametersFormLayout.addRow("Output volume sequence: ", self.outputVolumesSelector)
+    label = qt.QLabel("Output volume sequence:")
+    label.setToolTip( "Pick or create a multivolume sequence as output." )
+    self.outputVolumesSelector.setToolTip( "Pick or create a multivolume sequence as output." )
+    parametersFormLayout.addRow(label, self.outputVolumesSelector)
     self.outputVolumeBrowser = None
 
     self.outputSeqIndex = -1
@@ -103,8 +107,10 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputTransformSelector.showHidden = False
     self.outputTransformSelector.showChildNodeTypes = False
     self.outputTransformSelector.setMRMLScene( slicer.mrmlScene )
+    label = qt.QLabel("Output transform sequence:")
+    label.setToolTip( "(optional) Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output sequence (transform and/or volume)." )
     self.outputTransformSelector.setToolTip( "(optional) Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output sequence (transform and/or volume)." )
-    parametersFormLayout.addRow("Output transform sequence: ", self.outputTransformSelector)
+    parametersFormLayout.addRow(label, self.outputTransformSelector)
 
     self.outputTransformBrowser = None
 
@@ -113,10 +119,13 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     # Preset selector
     # 
     import Elastix
+    label = qt.QLabel("Preset:")
     self.registrationPresetSelector = qt.QComboBox()
+    label.setToolTip("Pick preset to register with.")
+    self.registrationPresetSelector.setToolTip("Pick preset to register with.")
     for preset in self.logic.elastixLogic.getRegistrationPresets():
       self.registrationPresetSelector.addItem("{0} ({1})".format(preset[Elastix.RegistrationPresets_Modality], preset[Elastix.RegistrationPresets_Content]))
-    parametersFormLayout.addRow("Preset: ", self.registrationPresetSelector)
+    parametersFormLayout.addRow(label, self.registrationPresetSelector)
 
 
     #
@@ -138,8 +147,10 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.initialFixedFrame.singleStep = 1
     self.initialFixedFrame.minimum = 0
     self.initialFixedFrame.value = 0
-    self.initialFixedFrame.setToolTip("Set the frame of the input sequence that you would like to use as the fixed volume.")
-    advancedFormLayout.addRow("Start at fixed frame number", self.initialFixedFrame)
+    label = qt.QLabel("Fixed frame at timepoint:")
+    label.setToolTip("Set the frame of the input sequence to use as the fixed volume.")
+    self.initialFixedFrame.setToolTip("Set the frame of the input sequence to use as the fixed volume.")
+    advancedFormLayout.addRow(label, self.initialFixedFrame)
 
     #
     # Option to show detailed log
@@ -147,14 +158,16 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.showDetailedLogDuringExecutionCheckBox = qt.QCheckBox(" ")
     self.showDetailedLogDuringExecutionCheckBox.checked = False
+    label = qt.QLabel("Show detailed log during registration:")
+    label.setToolTip("Show detailed log during registration.")
     self.showDetailedLogDuringExecutionCheckBox.setToolTip("Show detailed log during registration.")
-    advancedFormLayout.addRow("Show detailed log during registration:", self.showDetailedLogDuringExecutionCheckBox)
+    advancedFormLayout.addRow(label, self.showDetailedLogDuringExecutionCheckBox)
 
     #
     # Apply Button
     #
     self.applyButton = qt.QPushButton("Register")
-    self.applyButton.toolTip = "Run the algorithm."
+    self.applyButton.toolTip = "Start registration."
     self.applyButton.enabled = False
     self.layout.addWidget(self.applyButton)
 
