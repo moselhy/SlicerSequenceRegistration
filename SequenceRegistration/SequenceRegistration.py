@@ -442,22 +442,64 @@ class SequenceRegistrationTest(ScriptedLoadableModuleTest):
     """
 
     self.delayDisplay("Starting the test")
+    slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
     #
     # first, get some data
     #
 
     import SampleData
     sampleDataLogic = SampleData.SampleDataLogic()
-    tumor1 = sampleDataLogic.downloadMRBrainTumor1()
-    tumor2 = sampleDataLogic.downloadMRBrainTumor2()
+    inputVolSeqBrowser = sampleDataLogic.downloadSample("CTPCardio")[0]
+    inputVolSeq = inputVolSeqBrowser.GetMasterSequenceNode()
 
-    outputVolume = slicer.vtkMRMLScalarVolumeNode()
-    slicer.mrmlScene.AddNode(outputVolume)
-    outputVolume.CreateDefaultDisplayNodes()
+    outputVolSeq = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceNode", "OutVolSeq")
+    outputTransformSeq = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceNode", "OutTransformSeq")
+
+    # Resample input sequence for faster registration
+
+    resampledVolSeq = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceNode", "InVolSeq")
+    volumesLogic = slicer.modules.volumes.logic()
+
+    originalSeqBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
+    originalSeqBrowser.SetAndObserveMasterSequenceNodeID(inputVolSeq.GetID())
+
+    resampledVolSeq.RemoveAllDataNodes()
+    resampledVolSeq.SetIndexType(inputVolSeq.GetIndexType())
+    resampledVolSeq.SetIndexName(inputVolSeq.GetIndexName())
+    resampledVolSeq.SetIndexUnit(inputVolSeq.GetIndexUnit())
+
+    resampleParameters = { 'outputPixelSpacing':'5,5,5', 'interpolationType':'linear' }
+
+    self.delayDisplay('Resampling input sequence...')
+
+
+    for dataNode in range(inputVolSeq.GetNumberOfDataNodes()):
+        originalSeqBrowser.SetSelectedItemNumber(dataNode)
+        original = originalSeqBrowser.GetProxyNode(inputVolSeq)
+        resampled = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode")
+    
+        resampleParameters['InputVolume'] = original.GetID()
+        resampleParameters['OutputVolume'] = resampled.GetID()
+        slicer.cli.run(slicer.modules.resamplescalarvolume, None, resampleParameters, wait_for_completion=True)
+
+        resampledVolSeq.SetDataNodeAtValue(resampled, str(dataNode))
+        slicer.mrmlScene.RemoveNode(resampled)
+
+
+    n = inputVolSeqBrowser.GetProxyNode(inputVolSeq)
+    slicer.mrmlScene.RemoveNode(inputVolSeqBrowser)
+    slicer.mrmlScene.RemoveNode(n)
+    slicer.mrmlScene.RemoveNode(originalSeqBrowser)
+    slicer.mrmlScene.RemoveNode(original)
+    slicer.mrmlScene.RemoveNode(inputVolSeq)
+
+    self.delayDisplay('Starting registration...')
 
     import Elastix
     logic = SequenceRegistrationLogic()
-    parameterFilenames = logic.elastixLogic.getRegistrationPresets()[0][Elastix.RegistrationPresets_ParameterFilenames]
-    logic.registerVolumeSequence(tumor1, tumor2, parameterFilenames = parameterFilenames, outputVolumeNode = outputVolume)
+    logic.registerVolumeSequence(resampledVolSeq, outputVolSeq, outputTransformSeq, 3, 1)
 
+    logging.error("Number of data nodes in volume sequence: %s" % resampledVolSeq.GetNumberOfDataNodes())
+
+    slicer.app.restoreOverrideCursor()
     self.delayDisplay('Test passed!')
