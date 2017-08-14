@@ -103,7 +103,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputTransformSelector.showHidden = False
     self.outputTransformSelector.showChildNodeTypes = False
     self.outputTransformSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputTransformSelector.setToolTip( "(optional) Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output object (transform and/or output volume)." )
+    self.outputTransformSelector.setToolTip( "(optional) Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output sequence (transform and/or volume)." )
     parametersFormLayout.addRow("Output transform sequence: ", self.outputTransformSelector)
 
     self.outputTransformBrowser = None
@@ -138,7 +138,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     label = qt.QLabel('Input Step:')
     self.inputStepSize = qt.QDoubleSpinBox()
     self.inputStepSize.value = 0
-    self.inputStepSize.setMinimum(0)
+    self.inputStepSize.minimum = 0
     advancedFormLayout.addRow(label, self.inputStepSize)
 
     #
@@ -195,8 +195,13 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     else:
       numberOfDataNodes = self.inputSelector.currentNode().GetNumberOfDataNodes()
 
-    self.initialFixedFrame.maximum = numberOfDataNodes-1
-    self.inputStepSize.setMaximum(numberOfDataNodes-1)
+    if numberOfDataNodes < 1:
+      self.initialFixedFrame.maximum = 0
+      self.inputStepSize.maximum = 0
+    else:
+      self.initialFixedFrame.maximum = numberOfDataNodes-1
+      self.inputStepSize.maximum = numberOfDataNodes-1
+
     self.applyButton.enabled = self.inputSelector.currentNode() and self.outputVolumesSelector.currentNode()
 
     if not self.registrationInProgress:
