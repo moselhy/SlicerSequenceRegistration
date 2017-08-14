@@ -89,10 +89,6 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     label.setToolTip( "Pick or create a multivolume sequence as output." )
     self.outputVolumesSelector.setToolTip( "Pick or create a multivolume sequence as output." )
     parametersFormLayout.addRow(label, self.outputVolumesSelector)
-    self.outputVolumeBrowser = None
-
-    self.outputSeqIndex = -1
-
 
     #
     # output transform selector
@@ -244,34 +240,6 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.statusLabel.appendPlainText(text)
     slicer.app.processEvents()  # force update
 
-  def copySequences(self, srcSeq, trgSeq, numberOfVols):
-    for i in range(numberOfVols):
-      self.movingIndex += 1
-      self.outputSeqIndex += 1
-      srcVol = srcSeq.GetDataNodeAtValue(str(i))
-      outputSequence.SetDataNodeAtValue(srcVol, str(i))
-
-  def updateBrowsers(self):
-    if self.outputTransformSelector.currentNode() and not self.outputTransformBrowser:
-      self.outputVolumeBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
-      self.outputVolumeBrowser.SetAndObserveMasterSequenceNodeID(self.outputTransformSelector.currentNode().GetID())
-      self.outputVolumeBrowser.SetSelectedItemNumber(0)
-
-  #   if self.outputVolumesSelector.currentNode() and not self.outputVolumeBrowser:
-  #     self.outputVolumeBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
-  #     self.outputVolumeBrowser.SetAndObserveMasterSequenceNodeID(self.outputVolumesSelector.currentNode().GetID())
-  #     self.outputVolumeBrowser.SetSelectedItemNumber(0)
-
-  #   if self.inputSelector.currentNode() and not self.inputVolumeBrowser:
-  #     self.inputVolumeBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
-  #     self.inputVolumeBrowser.SetAndObserveMasterSequenceNodeID(self.inputSelector.currentNode().GetID())
-  #     self.inputVolumeBrowser.SetSelectedItemNumber(0)
-
-  #   if self.inputSelector.currentNode() and not self.movingBrowserNode:
-  #     self.movingBrowserNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
-  #     self.movingBrowserNode.SetAndObserveMasterSequenceNodeID(self.inputSelector.currentNode().GetID())
-  #     self.movingBrowserNode.SetSelectedItemNumber(0)
-
 #
 # SequenceRegistrationLogic
 #
@@ -336,7 +304,6 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
     try:
 
       numberOfDataNodes = inputVolSeq.GetNumberOfDataNodes()
-      #numberOfDataNodes = 5
       for movingVolumeItemNumber in range(numberOfDataNodes):
         if movingVolumeItemNumber>0:
           self.elastixLogic.addLog("---------------------")
@@ -407,9 +374,9 @@ class SequenceRegistrationTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_SequenceRegistration1()
+    self.test_SequenceRegistration()
 
-  def test_SequenceRegistration1(self):
+  def test_SequenceRegistration(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
@@ -478,8 +445,6 @@ class SequenceRegistrationTest(ScriptedLoadableModuleTest):
     import Elastix
     logic = SequenceRegistrationLogic()
     logic.registerVolumeSequence(resampledVolSeq, outputVolSeq, outputTransformSeq, 3, 1)
-
-    logging.error("Number of data nodes in volume sequence: %s" % resampledVolSeq.GetNumberOfDataNodes())
 
     slicer.app.restoreOverrideCursor()
     self.delayDisplay('Test passed!')
