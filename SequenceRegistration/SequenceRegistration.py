@@ -325,7 +325,6 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
 
           if outputVolSeq:
             outputVolSeq.SetDataNodeAtValue(outputVol, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
-            #outputVolSeq.SetDataNodeAtValue(movingVolume, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
           if outputTransformSeq:
             outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
         else:
