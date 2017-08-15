@@ -307,7 +307,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
       for movingVolumeItemNumber in range(numberOfDataNodes):
         if movingVolumeItemNumber>0:
           self.elastixLogic.addLog("---------------------")
-        self.elastixLogic.addLog("Registering item {0}/{1}".format(movingVolumeItemNumber, numberOfDataNodes-1))
+        self.elastixLogic.addLog("Registering item {0}/{1}".format(movingVolumeItemNumber+1, numberOfDataNodes))
         movingSeqBrowser.SetSelectedItemNumber(movingVolumeItemNumber)
         slicer.modules.sequencebrowser.logic().UpdateProxyNodesFromSequences(movingSeqBrowser)
         movingVolume = movingSeqBrowser.GetProxyNode(inputVolSeq)
