@@ -160,6 +160,44 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     advancedFormLayout.addRow(label, self.showDetailedLogDuringExecutionCheckBox)
 
     #
+    # Option to keep temporary files after registration
+    #
+
+    self.keepTemporaryFilesCheckBox = qt.QCheckBox(" ")
+    self.keepTemporaryFilesCheckBox.checked = False
+    label = qt.QLabel("Keep temporary files:")
+    label.setToolTip("Keep temporary files (inputs, computed outputs, logs) after the registration is completed.")
+    self.keepTemporaryFilesCheckBox.setToolTip("Keep temporary files (inputs, computed outputs, logs) after the registration is completed.")
+
+    #
+    # Button to open the folder in which temporary files are stored
+    #
+
+    self.showTemporaryFilesFolderButton = qt.QPushButton("Show temp folder")
+    self.showTemporaryFilesFolderButton.toolTip = "Open the folder where temporary files are stored."
+    self.showTemporaryFilesFolderButton.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
+
+    hbox = qt.QHBoxLayout()
+    hbox.addWidget(self.keepTemporaryFilesCheckBox)
+    hbox.addWidget(self.showTemporaryFilesFolderButton)
+    advancedFormLayout.addRow(label, hbox)
+
+
+    self.showRegistrationParametersDatabaseFolderButton = qt.QPushButton("Show database folder")
+    self.showRegistrationParametersDatabaseFolderButton.toolTip = "Open the folder where temporary files are stored."
+    self.showRegistrationParametersDatabaseFolderButton.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
+    advancedFormLayout.addRow("Registration presets:", self.showRegistrationParametersDatabaseFolderButton)
+
+    customElastixBinDir = self.logic.elastixLogic.getCustomElastixBinDir()
+    self.customElastixBinDirSelector = ctk.ctkPathLineEdit()
+    self.customElastixBinDirSelector.filters = ctk.ctkPathLineEdit.Dirs
+    self.customElastixBinDirSelector.setCurrentPath(customElastixBinDir)
+    self.customElastixBinDirSelector.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
+    self.customElastixBinDirSelector.setToolTip("Set bin directory of an Elastix installation (where elastix executable is located). "
+      "If value is empty then default elastix (bundled with SlicerElastix extension) will be used.")
+    advancedFormLayout.addRow("Custom Elastix toolbox location:", self.customElastixBinDirSelector)
+
+    #
     # Apply Button
     #
     self.applyButton = qt.QPushButton("Register")
@@ -178,6 +216,13 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputVolumesSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputTransformSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.showTemporaryFilesFolderButton.connect('clicked(bool)', self.onShowTemporaryFilesFolder)
+    self.showRegistrationParametersDatabaseFolderButton.connect('clicked(bool)', self.onShowRegistrationParametersDatabaseFolder)
+    # Immediately update deleteTemporaryFiles and show detailed logs in the logic to make it possible to decide to
+    # update these variables while the registration is running
+    self.keepTemporaryFilesCheckBox.connect("toggled(bool)", self.onKeepTemporaryFilesToggled)
+    self.showDetailedLogDuringExecutionCheckBox.connect("toggled(bool)", self.onShowLogToggled)
+
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -220,6 +265,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.statusLabel.plainText = ''
     slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
     try:
+      self.logic.elastixLogic.setCustomElastixBinDir(self.customElastixBinDirSelector.currentPath)
       self.logic.logStandardOutput = self.showDetailedLogDuringExecutionCheckBox.checked
       self.logic.registerVolumeSequence(self.inputSelector.currentNode(),
         self.outputVolumesSelector.currentNode(), self.outputTransformSelector.currentNode(),
@@ -239,6 +285,18 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     """
     self.statusLabel.appendPlainText(text)
     slicer.app.processEvents()  # force update
+
+  def onShowTemporaryFilesFolder(self):
+    qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.elastixLogic.getTempDirectoryBase(), qt.QUrl.TolerantMode));
+
+  def onKeepTemporaryFilesToggled(self, toggle):
+    self.logic.elastixLogic.deleteTemporaryFiles = toggle
+
+  def onShowRegistrationParametersDatabaseFolder(self):
+    qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.elastixLogic.registrationParameterFilesDir, qt.QUrl.TolerantMode));
+
+  def onShowLogToggled(self, toggle):
+    self.logic.elastixLogic.logStandardOutput = toggle
 
 #
 # SequenceRegistrationLogic
@@ -401,49 +459,14 @@ class SequenceRegistrationTest(ScriptedLoadableModuleTest):
     outputVolSeq = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceNode", "OutVolSeq")
     outputTransformSeq = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceNode", "OutTransformSeq")
 
-    # Resample input sequence for faster registration
-
-    resampledVolSeq = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceNode", "InVolSeq")
-    volumesLogic = slicer.modules.volumes.logic()
-
-    originalSeqBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
-    originalSeqBrowser.SetAndObserveMasterSequenceNodeID(inputVolSeq.GetID())
-
-    resampledVolSeq.RemoveAllDataNodes()
-    resampledVolSeq.SetIndexType(inputVolSeq.GetIndexType())
-    resampledVolSeq.SetIndexName(inputVolSeq.GetIndexName())
-    resampledVolSeq.SetIndexUnit(inputVolSeq.GetIndexUnit())
-
-    resampleParameters = { 'outputPixelSpacing':'5,5,5', 'interpolationType':'linear' }
-
-    self.delayDisplay('Resampling input sequence...')
-
-
-    for dataNode in range(inputVolSeq.GetNumberOfDataNodes()):
-        originalSeqBrowser.SetSelectedItemNumber(dataNode)
-        original = originalSeqBrowser.GetProxyNode(inputVolSeq)
-        resampled = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode")
-    
-        resampleParameters['InputVolume'] = original.GetID()
-        resampleParameters['OutputVolume'] = resampled.GetID()
-        slicer.cli.run(slicer.modules.resamplescalarvolume, None, resampleParameters, wait_for_completion=True)
-
-        resampledVolSeq.SetDataNodeAtValue(resampled, str(dataNode))
-        slicer.mrmlScene.RemoveNode(resampled)
-
-
-    n = inputVolSeqBrowser.GetProxyNode(inputVolSeq)
-    slicer.mrmlScene.RemoveNode(inputVolSeqBrowser)
-    slicer.mrmlScene.RemoveNode(n)
-    slicer.mrmlScene.RemoveNode(originalSeqBrowser)
-    slicer.mrmlScene.RemoveNode(original)
-    slicer.mrmlScene.RemoveNode(inputVolSeq)
+    for i in range(inputVolSeq.GetNumberOfDataNodes())[3:]:
+      inputVolSeq.RemoveDataNodeAtValue(str(i))
 
     self.delayDisplay('Starting registration...')
 
     import Elastix
     logic = SequenceRegistrationLogic()
-    logic.registerVolumeSequence(resampledVolSeq, outputVolSeq, outputTransformSeq, 3, 1)
+    logic.registerVolumeSequence(inputVolSeq, outputVolSeq, outputTransformSeq, 1, 0)
 
     slicer.app.restoreOverrideCursor()
     self.delayDisplay('Test passed!')
