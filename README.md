@@ -1,4 +1,4 @@
-# SequenceRegistration
+# Slicer MultiVolume Sequence Registration
 ## Uses [SlicerElastix](https://github.com/lassoan/SlicerElastix) module logic to register 4D multivolumes
 
 ### Screenshot:
