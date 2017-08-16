@@ -8,7 +8,7 @@ The module uses [Elastix](http://elastix.isi.uu.nl/) registration toolkit throug
 
 ![Alt text](screenshot01.png?raw=true "Screenshot")
 
-See full result here (animated gif): http://wiki.imaging.robarts.ca/images/e/eb/14.gif
+See full result here (animated gif; top row: before registration, bottom row: motion-compensated output): http://wiki.imaging.robarts.ca/images/e/eb/14.gif
 
 ## Usage:
 
@@ -20,8 +20,8 @@ See full result here (animated gif): http://wiki.imaging.robarts.ca/images/e/eb/
 
 * Switch to Sequence registration module (in Sequences category in the module list)
 * Input volume sequence: CTP-cardio
-* Output volume sequence: Create new
-* Output transform sequence: Create new
+* Output volume sequence: Create new sequence
+* Output transform sequence: Create new sequence
 * Advanced section / Fixed frame at timepoint: 7 (the first frame does not contain contrast agent, so registering all the contrasted frames to it would not provide optimal results)
 * Click Register -- and wait about 10 minutes
 
@@ -67,23 +67,23 @@ All the required input is a volume sequence node in Slicer. In the future, the m
 
 8. Edit the file name by double-clicking on it, and append `.seq` to the end of the filename (when you load this image into Slicer later, this .seq.nrrd file extension gives a hint to Slicer that the file should be interpreted as a volume sequence)
 
-8. Click `Save`
+9. Click `Save`
 
 ![Alt text](img/seqnrrd.png?raw=true "Save MultiVolume as Nrrd Sequence")
 
-9. Close the Scene by clicking `File -> Close Scene`
+10. Close the Scene by clicking `File -> Close Scene`
 
 ![Alt text](img/closescene.png?raw=true "Close Scene")
 
-10. Click the `Data` button at the top of Slicer
+11. Click the `Data` button at the top of Slicer
 
 ![Alt text](img/data.png?raw=true "Add Data")
 
-11. Choose the file you saved in step 8 and click `Open`, then click `Ok` to load the MultiVolume Sequence
+12. Choose the file you saved in step 8 and click `Open`, then click `Ok` to load the MultiVolume Sequence
 
 ![Alt text](img/open.png?raw=true "Load MultiVolume Sequence")
 
-12. Now you can choose the sequence as input in the Sequence Registration Module
+13. Now you can choose the sequence as input in the Sequence Registration Module
 
 ![Alt text](img/choose.png?raw=true "Use MultiVolume Sequence in Sequence Registration")
 
