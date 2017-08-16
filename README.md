@@ -8,7 +8,7 @@ The module uses [Elastix](http://elastix.isi.uu.nl/) registration toolkit throug
 
 ![Alt text](screenshot01.png?raw=true "Screenshot")
 
-See full result here (animated gif): http://wiki.imaging.robarts.ca/images/e/eb/14.gif
+See full result here (animated gif; top row: before registration, bottom row: motion-compensated output): http://wiki.imaging.robarts.ca/images/e/eb/14.gif
 
 ## Usage:
 
