@@ -1,14 +1,14 @@
 # Slicer MultiVolume Sequence Registration
 ## Uses [SlicerElastix](https://github.com/lassoan/SlicerElastix) module logic to register 4D multivolumes
 
-### Screenshot:
+## Screenshot:
 
 
 ![Alt text](screenshot.png?raw=true "Screenshot")
 
-### Usage:
+## Usage:
 
-## All the input that is needed is a multivolume sequence.
+#### All the required input is a multivolume sequence.
 ###### Currently developing an input for masks as well
 
 ### How to make a sequence:
