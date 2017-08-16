@@ -63,7 +63,7 @@
 ![Alt text](img/choose.png?raw=true "Use MultiVolume Sequence in Sequence Registration")
 
 #### From a MultiVolume NRRD:
-- Perform steps 8-12 above
+- Perform steps 8-12 [above](#from-dicoms)
 
 #### From many scalar volumes:
 1. Open the Sequences module
