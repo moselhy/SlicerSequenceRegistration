@@ -369,31 +369,46 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         movingSeqBrowser.SetSelectedItemNumber(movingVolumeItemNumber)
         slicer.modules.sequencebrowser.logic().UpdateProxyNodesFromSequences(movingSeqBrowser)
         movingVolume = movingSeqBrowser.GetProxyNode(inputVolSeq)
+        # Temporary fix
+        self.elastixLogic.registerVolumes(
+          fixedVolume, movingVolume,
+          outputVolumeNode = outputVol,
+          parameterFilenames = parameterFilenames,
+          outputTransformNode = outputTransform
+          )
+        t = vtk.vtkMatrix4x4()
+        t.SetElement(0,3,movingVolumeItemNumber)
+        outputTransform.SetMatrixTransformToParent(t)
 
-        if movingVolumeItemNumber != fixedVolumeItemNumber:
-          self.elastixLogic.registerVolumes(
-            fixedVolume, movingVolume,
-            outputVolumeNode = outputVol,
-            parameterFilenames = parameterFilenames,
-            outputTransformNode = outputTransform
-            )
-          t = vtk.vtkMatrix4x4()
-          t.SetElement(0,3,movingVolumeItemNumber)
-          outputTransform.SetMatrixTransformToParent(t)
+        if outputVolSeq:
+          outputVolSeq.SetDataNodeAtValue(outputVol, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+        if outputTransformSeq:
+          outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
 
-          if outputVolSeq:
-            outputVolSeq.SetDataNodeAtValue(outputVol, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
-          if outputTransformSeq:
-            outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
-        else:
-          self.elastixLogic.addLog("Same as fixed volume.")
-          if outputVolSeq:
-            outputVolSeq.SetDataNodeAtValue(fixedVolume, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
-          if outputTransformSeq:
-            identityTransformMatrix = vtk.vtkMatrix4x4()
-            outputTransform.SetMatrixTransformToParent(identityTransformMatrix)
-            #outputTransform.SetAndObserveTransformToParent(None)
-            outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+        # if movingVolumeItemNumber != fixedVolumeItemNumber:
+        #   self.elastixLogic.registerVolumes(
+        #     fixedVolume, movingVolume,
+        #     outputVolumeNode = outputVol,
+        #     parameterFilenames = parameterFilenames,
+        #     outputTransformNode = outputTransform
+        #     )
+        #   t = vtk.vtkMatrix4x4()
+        #   t.SetElement(0,3,movingVolumeItemNumber)
+        #   outputTransform.SetMatrixTransformToParent(t)
+
+        #   if outputVolSeq:
+        #     outputVolSeq.SetDataNodeAtValue(outputVol, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+        #   if outputTransformSeq:
+        #     outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+        # else:
+        #   self.elastixLogic.addLog("Same as fixed volume.")
+        #   if outputVolSeq:
+        #     outputVolSeq.SetDataNodeAtValue(fixedVolume, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+        #   if outputTransformSeq:
+        #     identityTransformMatrix = vtk.vtkMatrix4x4()
+        #     outputTransform.SetMatrixTransformToParent(identityTransformMatrix)
+        #     #outputTransform.SetAndObserveTransformToParent(None)
+        #     outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
 
     finally:
 
