@@ -111,9 +111,9 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputTransformBrowser = None
 
 
-    # 
+    #
     # Preset selector
-    # 
+    #
     import Elastix
     label = qt.QLabel("Preset:")
     self.registrationPresetSelector = qt.QComboBox()
@@ -252,7 +252,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.updateBrowsers()
 
   def onApplyButton(self):
-    
+
     if self.registrationInProgress:
       self.registrationInProgress = False
       self.logic.setAbortRequested(True)
@@ -357,7 +357,12 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         seq.SetIndexUnit(inputVolSeq.GetIndexUnit())
 
     outputVol = slicer.mrmlScene.AddNewNodeByClass(fixedVolume.GetClassName())
-    outputTransform = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")    
+
+    # Only request output transform if it is needed, to save some time on computing it
+    if outputTransformSeq:
+      outputTransform = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")
+    else:
+      outputTransform = None
 
     try:
 
@@ -369,6 +374,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         movingSeqBrowser.SetSelectedItemNumber(movingVolumeItemNumber)
         slicer.modules.sequencebrowser.logic().UpdateProxyNodesFromSequences(movingSeqBrowser)
         movingVolume = movingSeqBrowser.GetProxyNode(inputVolSeq)
+<<<<<<< HEAD
         # Temporary fix
         self.elastixLogic.registerVolumes(
           fixedVolume, movingVolume,
@@ -409,12 +415,36 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         #     outputTransform.SetMatrixTransformToParent(identityTransformMatrix)
         #     #outputTransform.SetAndObserveTransformToParent(None)
         #     outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+=======
+
+        if movingVolumeItemNumber != fixedVolumeItemNumber:
+          self.elastixLogic.registerVolumes(
+            fixedVolume, movingVolume,
+            outputVolumeNode = outputVol,
+            parameterFilenames = parameterFilenames,
+            outputTransformNode = outputTransform
+            )
+
+          if outputVolSeq:
+            outputVolSeq.SetDataNodeAtValue(outputVol, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+          if outputTransformSeq:
+            outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+        else:
+          self.elastixLogic.addLog("Same as fixed volume.")
+          if outputVolSeq:
+            outputVolSeq.SetDataNodeAtValue(fixedVolume, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+          if outputTransformSeq:
+            # Set identity as transform (vtkTransform is initialized to identity transform by default)
+            outputTransform.SetAndObserveTransformToParent(vtk.vtkTransform())
+            outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+>>>>>>> c4372c4d6217f38794cc29de5d856e9b26e2afd7
 
     finally:
 
       # Temporary result nodes
       slicer.mrmlScene.RemoveNode(outputVol)
-      slicer.mrmlScene.RemoveNode(outputTransform)
+      if outputTransformSeq:
+        slicer.mrmlScene.RemoveNode(outputTransform)
       # Temporary input browser nodes
       slicer.mrmlScene.RemoveNode(fixedSeqBrowser)
       slicer.mrmlScene.RemoveNode(movingSeqBrowser)

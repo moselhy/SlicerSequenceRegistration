@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 2.8.9)
 
-project(SlicerSequenceRegistration)
+project(SequenceRegistration)
 
 #-----------------------------------------------------------------------------
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "https://github.com/moselhy/SlicerSequenceRegistration")
 set(EXTENSION_CATEGORY "Sequences")
 set(EXTENSION_CONTRIBUTORS "Mohamed Moselhy (Western University), Andras Lasso (PerkLab, Queen's University)")
-set(EXTENSION_DESCRIPTION "This will register a multi-volume sequence using Elastix.")
+set(EXTENSION_DESCRIPTION "This extension registers 4D volume sequences for motion compensation or motion analysis.")
 set(EXTENSION_ICONURL "https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/SequenceRegistration/Resources/Icons/SequenceRegistration.png")
-set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/screenshot.png")
-set(EXTENSION_DEPENDS "Sequences SlicerElastix") # Specified as a space separated string, a list or 'NA' if any
+set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/screenshot01.png https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/screenshot02.png")
+set(EXTENSION_DEPENDS "Sequences SlicerElastix")
 
 #-----------------------------------------------------------------------------
 # Extension dependencies
