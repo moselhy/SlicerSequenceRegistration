@@ -81,6 +81,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputVolumesSelector.selectNodeUponCreation = True
     self.outputVolumesSelector.addEnabled = True
     self.outputVolumesSelector.removeEnabled = True
+    self.outputVolumesSelector.renameEnabled = True
     self.outputVolumesSelector.noneEnabled = True
     self.outputVolumesSelector.showHidden = False
     self.outputVolumesSelector.showChildNodeTypes = False
@@ -99,6 +100,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputTransformSelector.selectNodeUponCreation = True
     self.outputTransformSelector.addEnabled = True
     self.outputTransformSelector.removeEnabled = True
+    self.outputTransformSelector.renameEnabled = True
     self.outputTransformSelector.noneEnabled = True
     self.outputTransformSelector.showHidden = False
     self.outputTransformSelector.showChildNodeTypes = False
