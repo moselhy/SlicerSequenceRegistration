@@ -398,7 +398,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
             outputTransform.SetAndObserveTransformToParent(vtk.vtkTransform())
             outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
 
-      # Uniformly match scalar type of the fixed volume in the output sequence to match the others
+      # Uniformly match scalar type of the fixed volume in the output sequence to the other volumes
       outputFixedVol = outputVolSeq.GetDataNodeAtValue(inputVolSeq.GetNthIndexValue(fixedVolumeItemNumber))
       imageCast = vtk.vtkImageCast()
       ijkToRasMatrix = vtk.vtkMatrix4x4()
