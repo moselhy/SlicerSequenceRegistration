@@ -427,7 +427,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
       slicer.mrmlScene.RemoveNode(fixedVolume)
       slicer.mrmlScene.RemoveNode(movingVolume)
 
-      # Move output sequences in the same browser not as the input volume sequence
+      # Move output sequences in the same browser node as the input volume sequence
       outputBrowserNode = self.findBrowserForSequence(inputVolSeq)
       if outputBrowserNode:
         if outputVolSeq and not self.findBrowserForSequence(outputVolSeq):
