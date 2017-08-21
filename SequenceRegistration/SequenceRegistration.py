@@ -429,13 +429,17 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
       slicer.mrmlScene.RemoveNode(fixedVolume)
       slicer.mrmlScene.RemoveNode(movingVolume)
 
-      # Move output sequences in the same browser node as the input volume sequence
+      # Move output sequences in the same browser node as the input volume sequence and rename their proxy nodes
       outputBrowserNode = self.findBrowserForSequence(inputVolSeq)
+      outputBrowserNode.SetOverwriteProxyName(inputVolSeq, True)
+      
       if outputBrowserNode:
         if outputVolSeq and not self.findBrowserForSequence(outputVolSeq):
           outputBrowserNode.AddSynchronizedSequenceNodeID(outputVolSeq.GetID())
+          outputBrowserNode.SetOverwriteProxyName(outputVolSeq, True)
         if outputTransformSeq and not self.findBrowserForSequence(outputTransformSeq):
           outputBrowserNode.AddSynchronizedSequenceNodeID(outputTransformSeq.GetID())
+          outputBrowserNode.SetOverwriteProxyName(outputTransformSeq, True)
 
 class SequenceRegistrationTest(ScriptedLoadableModuleTest):
   """
