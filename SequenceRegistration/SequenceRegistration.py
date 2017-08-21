@@ -393,6 +393,8 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
           self.elastixLogic.addLog("Same as fixed volume.")
           if outputVolSeq:
             outputVolSeq.SetDataNodeAtValue(fixedVolume, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
+            outputVolSeq.GetDataNodeAtValue(inputVolSeq.GetNthIndexValue(movingVolumeItemNumber)).SetName(slicer.mrmlScene.GetUniqueNameByString("Volume"))
+
           if outputTransformSeq:
             # Set identity as transform (vtkTransform is initialized to identity transform by default)
             outputTransform.SetAndObserveTransformToParent(vtk.vtkTransform())
