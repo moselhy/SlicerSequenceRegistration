@@ -15,17 +15,14 @@ class SequenceRegistration(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Sequence Registration" # TODO make this more human readable by adding spaces
+    self.parent.title = "Sequence Registration"
     self.parent.categories = ["Sequences"]
     self.parent.dependencies = []
-    self.parent.contributors = ["Mohamed Moselhy (Western University), Andras Lasso (PerkLab, Queen's University)"] # replace with "Firstname Lastname (Organization)"
-    self.parent.helpText = """
-    TODO
+    self.parent.contributors = ["Mohamed Moselhy (Western University), Andras Lasso (PerkLab, Queen's University), and Feng Su (Western University)"]
+    self.parent.helpText = """For up-to-date user guides, go to <a href="https://github.com/moselhy/SlicerSequenceRegistration">the official GitHub page</a>
 """
-    self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
-    TODO
-""" # replace with organization, grant and thanks.
+"""
 
 #
 # SequenceRegistrationWidget
