@@ -428,8 +428,6 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
 
       # Move output sequences in the same browser node as the input volume sequence and rename their proxy nodes
       outputBrowserNode = self.findBrowserForSequence(inputVolSeq)
-      outputBrowserNode.SetOverwriteProxyName(inputVolSeq, True)
-      
       if outputBrowserNode:
         if outputVolSeq and not self.findBrowserForSequence(outputVolSeq):
           outputBrowserNode.AddSynchronizedSequenceNodeID(outputVolSeq.GetID())
