@@ -325,7 +325,8 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
       xml.write(presetDatabase)
 
     # Destroy old dialog box
-    self.cleanup()
+    self.newPresetBox.delete()
+    self.newParameterButtons = []
 
     # Refresh list and select new preset
     self.selectNewPreset()
@@ -370,8 +371,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
         return self.newParameterButtons.index(row)
 
   def cleanup(self):
-    self.newPresetBox.delete()
-    self.newParameterButtons = []
+  	pass
 
   def onSelect(self):
     if not self.inputSelector.currentNode():
