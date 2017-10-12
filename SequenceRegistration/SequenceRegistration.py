@@ -120,6 +120,8 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.registrationPresetSelector.setToolTip("Pick preset to register with.")
     for preset in self.logic.elastixLogic.getRegistrationPresets():
       self.registrationPresetSelector.addItem("{0} ({1})".format(preset[Elastix.RegistrationPresets_Modality], preset[Elastix.RegistrationPresets_Content]))
+    self.registrationPresetSelector.addItem("*NEW*")
+    self.newPresetIndex = self.registrationPresetSelector.count - 1
     parametersFormLayout.addRow(label, self.registrationPresetSelector)
 
 
@@ -221,16 +223,155 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     # update these variables while the registration is running
     self.keepTemporaryFilesCheckBox.connect("toggled(bool)", self.onKeepTemporaryFilesToggled)
     self.showDetailedLogDuringExecutionCheckBox.connect("toggled(bool)", self.onShowLogToggled)
+    # Check if user selects to create a new preset
+    self.registrationPresetSelector.connect("activated(int)", self.onCreatePresetPressed)
 
 
     # Add vertical spacer
     self.layout.addStretch(1)
 
+    # Variable initializations
+    self.newParameterButtons = []
+
     # Refresh Apply button state
     self.onSelect()
 
+  def onCreatePresetPressed(self):
+    if self.registrationPresetSelector.currentIndex != self.newPresetIndex:
+      return
+    
+    self.newPresetBox = qt.QDialog()
+    self.customPresetLayout = qt.QVBoxLayout()
+
+    self.addParameterFile()
+
+    addPresetButton = qt.QPushButton("Add more presets...")
+    addPresetButton.connect("clicked(bool)", self.addParameterFile)
+    self.customPresetLayout.addWidget(addPresetButton)
+    self.newPresetBox.setLayout(self.customPresetLayout)
+
+
+    # Add fields to specify descriptions, etc... for that preset (to be included in the XML file)
+
+    groupBox = qt.QGroupBox()
+    formLayout = qt.QFormLayout()
+
+    self.contentBox = qt.QLineEdit()
+    formLayout.addRow("Content: ", self.contentBox)
+    self.descriptionBox = qt.QLineEdit()
+    formLayout.addRow("Description: ", self.descriptionBox)
+    self.idBox = qt.QLineEdit()
+    formLayout.addRow("Id: ", self.idBox)
+    self.modalityBox = qt.QLineEdit()
+    formLayout.addRow("Modality: ", self.modalityBox)
+    self.publicationsBox = qt.QPlainTextEdit()
+    formLayout.addRow("Publications: ", self.publicationsBox)
+    
+    groupBox.setLayout(formLayout)
+    self.customPresetLayout.addWidget(groupBox)
+
+    # Add Ok/Cancel buttons and connect them to the main dialog
+    buttonBox = qt.QDialogButtonBox()
+    buttonBox.setStandardButtons(qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel)
+    buttonBox.setCenterButtons(True)
+    buttonBox.connect("accepted()", self.newPresetBox.accept)
+    buttonBox.connect("rejected()", self.newPresetBox.reject)
+
+    self.customPresetLayout.addWidget(buttonBox)
+
+    response = self.newPresetBox.exec_()
+
+    if response:
+      self.createPreset()
+
+  def createPreset(self):
+    filenames = []
+    # Get all the filenames that the user included
+    for includeButton in self.newPresetBox.findChildren(qt.QPushButton):
+      if includeButton.isChecked():
+        row = self.newParameterButtons[self.getRowNumber(includeButton)]
+        filepath = os.path.realpath(row[0].text)
+        if os.path.exists(filepath):
+          filenames.append(filepath)
+        else:
+          logging.error("File \"%s\" was not included, it was not found in %s" % (os.path.basename(filepath), os.path.dirname(filepath)))
+
+    if len(filenames) > 0:
+      from shutil import copyfile
+      import xml.etree.ElementTree as ET
+      databaseDir = self.logic.elastixLogic.registrationParameterFilesDir
+      presetDatabase = os.path.join(databaseDir, 'ElastixParameterSetDatabase.xml')
+      xml = ET.parse(presetDatabase)
+      root = xml.getroot()
+      attributes = {}
+      attributes['content'] = self.contentBox.text
+      attributes['description'] = self.descriptionBox.text
+      attributes['id'] = self.idBox.text
+      attributes['modality'] = self.modalityBox.text
+      attributes['publications'] = self.publicationsBox.plainText
+
+      presetElement = ET.SubElement(root, "ParameterSet", attributes)
+      parFilesElement = ET.SubElement(presetElement, "ParameterFiles")
+      
+      # Copy parameter files to database directory
+      for file in filenames:
+        filename = os.path.basename(file)
+        newFilePath = os.path.join(databaseDir, filename)
+        if os.path.exists(newFilePath) and not self.overwriteParFile(filename):
+          continue
+        copyfile(file, newFilePath)
+        ET.SubElement(parFilesElement, "File", {"Name" : filename})
+      
+      xml.write(presetDatabase)
+
+    # Destroy old dialog box
+    self.cleanup()
+
+    # Refresh list and select new preset
+    self.selectNewPreset()
+
+  def selectNewPreset(self):
+    import Elastix
+    self.logic = SequenceRegistrationLogic()
+    allPresets = self.logic.elastixLogic.getRegistrationPresets()
+    preset = allPresets[len(allPresets) - 1]
+    self.registrationPresetSelector.insertItem(self.newPresetIndex, "{0} ({1})".format(preset[Elastix.RegistrationPresets_Modality], preset[Elastix.RegistrationPresets_Content]))
+    self.registrationPresetSelector.currentIndex = self.newPresetIndex
+    self.newPresetIndex += 1
+
+  def overwriteParFile(self, filename):
+    d = qt.QDialog()
+    resp = qt.QMessageBox.warning(d, "Overwrite File?", "File \"%s\" already exists, do you want to overwrite it? (Clicking Discard would exclude the file from the preset)" % filename, qt.QMessageBox.Save | qt.QMessageBox.Discard, qt.QMessageBox.Save)
+    return resp == qt.QMessageBox.Save
+
+  def addParameterFile(self):
+    lastSelectorIndex = self.customPresetLayout.count() - 3
+    parameterFilePathButton = qt.QPushButton("Select a file")
+    parameterFileToggleButton = qt.QPushButton("Include")
+    parameterFileToggleButton.setCheckable(True)
+
+    rowLayout = qt.QHBoxLayout()
+    rowLayout.addWidget(parameterFilePathButton)
+    rowLayout.addWidget(parameterFileToggleButton)
+
+    self.newParameterButtons.append((parameterFilePathButton, parameterFileToggleButton))
+    self.customPresetLayout.insertLayout(lastSelectorIndex, rowLayout)
+
+    parameterFilePathButton.connect("clicked(bool)", lambda: self.selectParameterFile(parameterFilePathButton))
+
+  def selectParameterFile(self, sender):
+    sender.setText(qt.QFileDialog.getOpenFileName())
+    row = self.newParameterButtons[self.getRowNumber(sender)]
+    row[1].setChecked(True)
+
+  def getRowNumber(self, sender):
+    for row in self.newParameterButtons:
+      if sender in row:
+        return self.newParameterButtons.index(row)
+
   def cleanup(self):
-    pass
+    self.newPresetBox.delete()
+    self.newParameterButtons = []
 
   def onSelect(self):
     if not self.inputSelector.currentNode():
@@ -428,6 +569,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
 
       # Move output sequences in the same browser node as the input volume sequence and rename their proxy nodes
       outputBrowserNode = self.findBrowserForSequence(inputVolSeq)
+      
       if outputBrowserNode:
         if outputVolSeq and not self.findBrowserForSequence(outputVolSeq):
           outputBrowserNode.AddSynchronizedSequenceNodeID(outputVolSeq.GetID())
