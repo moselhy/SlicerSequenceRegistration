@@ -64,10 +64,8 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.inputSelector.showHidden = False
     self.inputSelector.showChildNodeTypes = False
     self.inputSelector.setMRMLScene( slicer.mrmlScene )
-    label = qt.QLabel("Input volume sequence:")
-    label.setToolTip( "Pick the multivolume sequence as input." )
-    self.inputSelector.setToolTip( "Pick the multivolume sequence as input." )
-    parametersFormLayout.addRow(label, self.inputSelector)
+    self.inputSelector.setToolTip("Pick input volume sequence. Each time point will be registered to the fixed frame.")
+    parametersFormLayout.addRow("Input volume sequence:", self.inputSelector)
 
     #
     # output volume selector
@@ -82,11 +80,9 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputVolumesSelector.noneEnabled = True
     self.outputVolumesSelector.showHidden = False
     self.outputVolumesSelector.showChildNodeTypes = False
-    self.outputVolumesSelector.setMRMLScene( slicer.mrmlScene )
-    label = qt.QLabel("Output volume sequence:")
-    label.setToolTip( "Pick or create a multivolume sequence as output." )
-    self.outputVolumesSelector.setToolTip( "Pick or create a multivolume sequence as output." )
-    parametersFormLayout.addRow(label, self.outputVolumesSelector)
+    self.outputVolumesSelector.setMRMLScene(slicer.mrmlScene)
+    self.outputVolumesSelector.setToolTip("Select a node for storing computed motion-compensated volume sequence.")
+    parametersFormLayout.addRow("Output volume sequence:", self.outputVolumesSelector)
 
     #
     # output transform selector
@@ -101,29 +97,21 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.outputTransformSelector.noneEnabled = True
     self.outputTransformSelector.showHidden = False
     self.outputTransformSelector.showChildNodeTypes = False
-    self.outputTransformSelector.setMRMLScene( slicer.mrmlScene )
-    label = qt.QLabel("Output transform sequence:")
-    label.setToolTip( "(optional) Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output sequence (transform and/or volume)." )
-    self.outputTransformSelector.setToolTip( "(optional) Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output sequence (transform and/or volume)." )
-    parametersFormLayout.addRow(label, self.outputTransformSelector)
-
-    self.outputTransformBrowser = None
-
+    self.outputTransformSelector.setMRMLScene(slicer.mrmlScene)
+    self.outputTransformSelector.setToolTip("Computed displacement field that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output sequence (transform and/or volume).")
+    parametersFormLayout.addRow("Output transform sequence:", self.outputTransformSelector)
 
     #
-    # Preset selector
+    # Output transform mode
     #
     import Elastix
-    label = qt.QLabel("Preset:")
     self.registrationPresetSelector = qt.QComboBox()
-    label.setToolTip("Pick preset to register with.")
     self.registrationPresetSelector.setToolTip("Pick preset to register with.")
     for preset in self.logic.elastixLogic.getRegistrationPresets():
       self.registrationPresetSelector.addItem("{0} ({1})".format(preset[Elastix.RegistrationPresets_Modality], preset[Elastix.RegistrationPresets_Content]))
     self.registrationPresetSelector.addItem("*NEW*")
     self.newPresetIndex = self.registrationPresetSelector.count - 1
-    parametersFormLayout.addRow(label, self.registrationPresetSelector)
-
+    parametersFormLayout.addRow("Preset:", self.registrationPresetSelector)
 
     #
     # Advanced Area
@@ -136,18 +124,37 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     # Layout within the dummy collapsible button
     advancedFormLayout = qt.QFormLayout(advancedCollapsibleButton)
 
+    # Fixed frame index
+    self.sequenceFixedItemIndexWidget = ctk.ctkSliderWidget()
+    self.sequenceFixedItemIndexWidget.decimals = 0
+    self.sequenceFixedItemIndexWidget.singleStep = 1
+    self.sequenceFixedItemIndexWidget.minimum = 0
+    self.sequenceFixedItemIndexWidget.value = 0
+    self.sequenceFixedItemIndexWidget.setToolTip("Set the frame of the input sequence to use as the fixed volume (that all other volumes will be registered to.")
+    advancedFormLayout.addRow("Fixed frame index:", self.sequenceFixedItemIndexWidget)
+
+    # Sequence start index
+    self.sequenceStartItemIndexWidget = ctk.ctkSliderWidget()
+    self.sequenceStartItemIndexWidget.minimum = 0
+    self.sequenceStartItemIndexWidget.decimals = 0
+    self.sequenceStartItemIndexWidget.setToolTip("First item in the sequence to register.")
+    advancedFormLayout.addRow("Start frame index:", self.sequenceStartItemIndexWidget)
+
+    # Sequence end index
+    self.sequenceEndItemIndexWidget = ctk.ctkSliderWidget()
+    self.sequenceEndItemIndexWidget.minimum = 0
+    self.sequenceEndItemIndexWidget.decimals = 0
+    self.sequenceEndItemIndexWidget.setToolTip("Last item in the sequence to register.")
+    advancedFormLayout.addRow("End frame index:", self.sequenceEndItemIndexWidget)
 
     #
-    # fixed frame number value
+    # Transform direction
     #
-    self.initialFixedFrame = ctk.ctkSliderWidget()
-    self.initialFixedFrame.singleStep = 1
-    self.initialFixedFrame.minimum = 0
-    self.initialFixedFrame.value = 0
-    label = qt.QLabel("Fixed frame at timepoint:")
-    label.setToolTip("Set the frame of the input sequence to use as the fixed volume.")
-    self.initialFixedFrame.setToolTip("Set the frame of the input sequence to use as the fixed volume.")
-    advancedFormLayout.addRow(label, self.initialFixedFrame)
+    self.transformDirectionSelector = qt.QComboBox()
+    self.transformDirectionSelector.setToolTip("Moving to fixed: computes stabilizing transform. Fixed to moving: computes morphing transform, which deforms structures defined on the fixed frame to all moving frames.")
+    self.transformDirectionSelector.addItem("moving frames to fixed frame")
+    self.transformDirectionSelector.addItem("fixed frame to moving frames")
+    advancedFormLayout.addRow("Transform direction:", self.transformDirectionSelector)
 
     #
     # Option to show detailed log
@@ -214,9 +221,12 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
-    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onInputSelect)
     self.outputVolumesSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputTransformSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.sequenceFixedItemIndexWidget.connect('valueChanged(double)', self.setSequenceItemIndex)
+    self.sequenceStartItemIndexWidget.connect('valueChanged(double)', self.setSequenceItemIndex)
+    self.sequenceEndItemIndexWidget.connect('valueChanged(double)', self.setSequenceItemIndex)
     self.showTemporaryFilesFolderButton.connect('clicked(bool)', self.onShowTemporaryFilesFolder)
     self.showRegistrationParametersDatabaseFolderButton.connect('clicked(bool)', self.onShowRegistrationParametersDatabaseFolder)
     # Immediately update deleteTemporaryFiles and show detailed logs in the logic to make it possible to decide to
@@ -234,12 +244,16 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.newParameterButtons = []
 
     # Refresh Apply button state
-    self.onSelect()
+    self.onInputSelect()
+
+  def setSequenceItemIndex(self, index):
+    sequenceBrowserNode = self.logic.findBrowserForSequence(self.inputSelector.currentNode())
+    sequenceBrowserNode.SetSelectedItemNumber(int(index))
 
   def onCreatePresetPressed(self):
     if self.registrationPresetSelector.currentIndex != self.newPresetIndex:
       return
-    
+
     self.newPresetBox = qt.QDialog()
     self.customPresetLayout = qt.QVBoxLayout()
 
@@ -266,7 +280,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     formLayout.addRow("Modality: ", self.modalityBox)
     self.publicationsBox = qt.QPlainTextEdit()
     formLayout.addRow("Publications: ", self.publicationsBox)
-    
+
     groupBox.setLayout(formLayout)
     self.customPresetLayout.addWidget(groupBox)
 
@@ -312,7 +326,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
 
       presetElement = ET.SubElement(root, "ParameterSet", attributes)
       parFilesElement = ET.SubElement(presetElement, "ParameterFiles")
-      
+
       # Copy parameter files to database directory
       for file in filenames:
         filename = os.path.basename(file)
@@ -321,7 +335,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
           continue
         copyfile(file, newFilePath)
         ET.SubElement(parFilesElement, "File", {"Name" : filename})
-      
+
       xml.write(presetDatabase)
 
     # Destroy old dialog box
@@ -373,18 +387,29 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
   def cleanup(self):
   	pass
 
-  def onSelect(self):
+  def onInputSelect(self):
     if not self.inputSelector.currentNode():
       numberOfDataNodes = 0
     else:
       numberOfDataNodes = self.inputSelector.currentNode().GetNumberOfDataNodes()
 
-    if numberOfDataNodes < 1:
-      self.initialFixedFrame.maximum = 0
-    else:
-      self.initialFixedFrame.maximum = numberOfDataNodes-1
+    for sequenceItemSelectorWidget in [self.sequenceFixedItemIndexWidget, self.sequenceStartItemIndexWidget, self.sequenceEndItemIndexWidget]:
+      if numberOfDataNodes < 1:
+        sequenceItemSelectorWidget.maximum = 0
+        sequenceItemSelectorWidget.enabled = False
+      else:
+        sequenceItemSelectorWidget.maximum = numberOfDataNodes-1
+        sequenceItemSelectorWidget.enabled = True
 
-    self.applyButton.enabled = self.inputSelector.currentNode() and self.outputVolumesSelector.currentNode()
+    self.sequenceFixedItemIndexWidget.value =  int(self.sequenceStartItemIndexWidget.maximum / 2)
+    self.sequenceStartItemIndexWidget.value =  0
+    self.sequenceEndItemIndexWidget.value = self.sequenceEndItemIndexWidget.maximum
+
+    self.onSelect()
+
+  def onSelect(self):
+
+    self.applyButton.enabled = self.inputSelector.currentNode() and (self.outputVolumesSelector.currentNode() or self.outputTransformSelector.currentNode())
 
     if not self.registrationInProgress:
       self.applyButton.text = "Register"
@@ -405,11 +430,16 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.statusLabel.plainText = ''
     slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
     try:
+      computeMovingToFixedTransform = (self.transformDirectionSelector.currentIndex == 0)
+      fixedFrameIndex = int(self.sequenceFixedItemIndexWidget.value)
+      startFrameIndex = int(self.sequenceStartItemIndexWidget.value)
+      endFrameIndex = int(self.sequenceEndItemIndexWidget.value)
       self.logic.elastixLogic.setCustomElastixBinDir(self.customElastixBinDirSelector.currentPath)
       self.logic.logStandardOutput = self.showDetailedLogDuringExecutionCheckBox.checked
       self.logic.registerVolumeSequence(self.inputSelector.currentNode(),
         self.outputVolumesSelector.currentNode(), self.outputTransformSelector.currentNode(),
-        int(self.initialFixedFrame.value), self.registrationPresetSelector.currentIndex)
+        fixedFrameIndex, self.registrationPresetSelector.currentIndex, computeMovingToFixedTransform,
+        startFrameIndex, endFrameIndex)
     except Exception as e:
       print e
       self.addLog("Error: {0}".format(e.message))
@@ -470,7 +500,11 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         return browserNode
     return None
 
-  def registerVolumeSequence(self, inputVolSeq, outputVolSeq, outputTransformSeq, fixedVolumeItemNumber, presetIndex):
+  def registerVolumeSequence(self, inputVolSeq, outputVolSeq, outputTransformSeq, fixedVolumeItemNumber, presetIndex, computeMovingToFixedTransform = True,
+    startFrameIndex=None, endFrameIndex=None):
+    """
+    computeMovingToFixedTransform: if True then moving->fixed else fixed->moving transforms are computed
+    """
     self.elastixLogic.logStandardOutput = self.logStandardOutput
     self.elastixLogic.logCallback = self.logCallback
     self.abortRequested = False
@@ -505,12 +539,16 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
       outputTransform = None
 
     try:
-
       numberOfDataNodes = inputVolSeq.GetNumberOfDataNodes()
-      for movingVolumeItemNumber in range(numberOfDataNodes):
-        if movingVolumeItemNumber>0:
+      if startFrameIndex is None:
+        startFrameIndex = 0
+      if endFrameIndex is None:
+        endFrameIndex = numberOfDataNodes-1
+      movingVolIndices = range(startFrameIndex, endFrameIndex+1)
+      for movingVolumeItemNumber in movingVolIndices:
+        if movingVolumeItemNumber>movingVolIndices[0]:
           self.elastixLogic.addLog("---------------------")
-        self.elastixLogic.addLog("Registering item {0}/{1}".format(movingVolumeItemNumber+1, numberOfDataNodes))
+        self.elastixLogic.addLog("Registering item {0} of {1}".format(movingVolumeItemNumber-movingVolIndices[0]+1, len(movingVolIndices)))
         movingSeqBrowser.SetSelectedItemNumber(movingVolumeItemNumber)
         slicer.modules.sequencebrowser.logic().UpdateProxyNodesFromSequences(movingSeqBrowser)
         movingVolume = movingSeqBrowser.GetProxyNode(inputVolSeq)
@@ -526,6 +564,8 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
           if outputVolSeq:
             outputVolSeq.SetDataNodeAtValue(outputVol, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
           if outputTransformSeq:
+            if not computeMovingToFixedTransform:
+              outputTransform.Inverse()
             outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
         else:
           self.elastixLogic.addLog("Same as fixed volume.")
@@ -538,21 +578,22 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
             outputTransform.SetAndObserveTransformToParent(vtk.vtkTransform())
             outputTransformSeq.SetDataNodeAtValue(outputTransform, inputVolSeq.GetNthIndexValue(movingVolumeItemNumber))
 
-      # Uniformly match scalar type of the fixed volume in the output sequence to the other volumes
-      outputFixedVol = outputVolSeq.GetDataNodeAtValue(inputVolSeq.GetNthIndexValue(fixedVolumeItemNumber))
-      imageCast = vtk.vtkImageCast()
-      ijkToRasMatrix = vtk.vtkMatrix4x4()
-      imageCast.SetInputData(outputFixedVol.GetImageData())
-      imageCast.SetOutputScalarTypeToShort()
-      imageCast.Update()
-      outputFixedVol.SetAndObserveImageData(imageCast.GetOutput())
-      movingVolIndices = range(numberOfDataNodes)
-      movingVolIndices.remove(fixedVolumeItemNumber)
-      if len(movingVolIndices) >= 1:
-        matchedVolumeIndex = movingVolIndices[0]
-        matchedVolume = outputVolSeq.GetDataNodeAtValue(outputVolSeq.GetNthIndexValue(matchedVolumeIndex))
-        outputFixedVol.SetOrigin(matchedVolume.GetOrigin())
-        outputFixedVol.SetSpacing(matchedVolume.GetSpacing())
+      if outputVolSeq:
+        # Make scalar type of the fixed volume in the output sequence to the other volumes
+        outputFixedVol = outputVolSeq.GetDataNodeAtValue(inputVolSeq.GetNthIndexValue(fixedVolumeItemNumber))
+        imageCast = vtk.vtkImageCast()
+        ijkToRasMatrix = vtk.vtkMatrix4x4()
+        imageCast.SetInputData(outputFixedVol.GetImageData())
+        imageCast.SetOutputScalarTypeToShort()
+        imageCast.Update()
+        outputFixedVol.SetAndObserveImageData(imageCast.GetOutput())
+        # Make origin and spacing match exactly other volumes
+        movingVolIndices.remove(fixedVolumeItemNumber)
+        if len(movingVolIndices) >= 1:
+          matchedVolumeIndex = movingVolIndices[0]
+          matchedVolume = outputVolSeq.GetDataNodeAtValue(inputVolSeq.GetNthIndexValue(matchedVolumeIndex))
+          outputFixedVol.SetOrigin(matchedVolume.GetOrigin())
+          outputFixedVol.SetSpacing(matchedVolume.GetSpacing())
 
     finally:
 
@@ -569,7 +610,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
 
       # Move output sequences in the same browser node as the input volume sequence and rename their proxy nodes
       outputBrowserNode = self.findBrowserForSequence(inputVolSeq)
-      
+
       if outputBrowserNode:
         if outputVolSeq and not self.findBrowserForSequence(outputVolSeq):
           outputBrowserNode.AddSynchronizedSequenceNodeID(outputVolSeq.GetID())
