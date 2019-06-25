@@ -441,7 +441,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
         fixedFrameIndex, self.registrationPresetSelector.currentIndex, computeMovingToFixedTransform,
         startFrameIndex, endFrameIndex)
     except Exception as e:
-      print e
+      print(e)
       self.addLog("Error: {0}".format(e.message))
       import traceback
       traceback.print_exc()
@@ -544,7 +544,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         startFrameIndex = 0
       if endFrameIndex is None:
         endFrameIndex = numberOfDataNodes-1
-      movingVolIndices = range(startFrameIndex, endFrameIndex+1)
+      movingVolIndices = list(range(startFrameIndex, endFrameIndex+1))
       for movingVolumeItemNumber in movingVolIndices:
         if movingVolumeItemNumber>movingVolIndices[0]:
           self.elastixLogic.addLog("---------------------")
@@ -657,7 +657,7 @@ class SequenceRegistrationTest(ScriptedLoadableModuleTest):
 
     import SampleData
     sampleDataLogic = SampleData.SampleDataLogic()
-    inputVolSeqBrowser = sampleDataLogic.downloadSample("CTPCardio")[0]
+    inputVolSeqBrowser = sampleDataLogic.downloadSample("CTPCardio")
     inputVolSeq = inputVolSeqBrowser.GetMasterSequenceNode()
 
     outputVolSeq = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceNode", "OutVolSeq")
