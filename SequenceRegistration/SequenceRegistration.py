@@ -515,7 +515,11 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
     fixedSeqBrowser = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSequenceBrowserNode")
     fixedSeqBrowser.SetAndObserveMasterSequenceNodeID(inputVolSeq.GetID())
     fixedSeqBrowser.SetSelectedItemNumber(fixedVolumeItemNumber)
-    slicer.modules.sequencebrowser.logic().UpdateAllProxyNodes()
+    if slicer.app.majorVersion*100+slicer.app.minorVersion < 411:
+      sequencesModule = slicer.modules.sequencebrowser
+    else:
+      sequencesModule = slicer.modules.sequences
+    sequencesModule.logic().UpdateAllProxyNodes()
     slicer.app.processEvents()
     fixedVolume = fixedSeqBrowser.GetProxyNode(inputVolSeq)
 
@@ -550,7 +554,7 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
           self.elastixLogic.addLog("---------------------")
         self.elastixLogic.addLog("Registering item {0} of {1}".format(movingVolumeItemNumber-movingVolIndices[0]+1, len(movingVolIndices)))
         movingSeqBrowser.SetSelectedItemNumber(movingVolumeItemNumber)
-        slicer.modules.sequencebrowser.logic().UpdateProxyNodesFromSequences(movingSeqBrowser)
+        sequencesModule.logic().UpdateProxyNodesFromSequences(movingSeqBrowser)
         movingVolume = movingSeqBrowser.GetProxyNode(inputVolSeq)
 
         if movingVolumeItemNumber != fixedVolumeItemNumber:

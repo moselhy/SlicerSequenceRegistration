@@ -10,7 +10,7 @@ set(EXTENSION_CONTRIBUTORS "Mohamed Moselhy (Western University), Andras Lasso (
 set(EXTENSION_DESCRIPTION "This extension registers 4D volume sequences for motion compensation or motion analysis.")
 set(EXTENSION_ICONURL "https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/SequenceRegistration/Resources/Icons/SequenceRegistration.png")
 set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/screenshot01.png https://raw.githubusercontent.com/moselhy/SlicerSequenceRegistration/master/screenshot02.png")
-set(EXTENSION_DEPENDS "Sequences SlicerElastix")
+set(EXTENSION_DEPENDS "SlicerElastix")
 
 #-----------------------------------------------------------------------------
 # Extension dependencies
