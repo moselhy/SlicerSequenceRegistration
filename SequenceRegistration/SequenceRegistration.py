@@ -442,7 +442,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
         startFrameIndex, endFrameIndex)
     except Exception as e:
       print(e)
-      self.addLog("Error: {0}".format(e.message))
+      self.addLog("Error: {0}".format(str(e)))
       import traceback
       traceback.print_exc()
     finally:
