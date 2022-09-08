@@ -4,7 +4,7 @@ This extension registers a sequence of volumes (3D+t a.k.a. 4D image data) to a 
 
 Applications include motion-compensation for volume comparison and analysis of organ motion.
 
-The module uses [Elastix](http://elastix.isi.uu.nl/) registration toolkit through [SlicerElastix extension](https://github.com/lassoan/SlicerElastix).
+The module uses [Elastix](https://elastix.lumc.nl/) registration toolkit through [SlicerElastix extension](https://github.com/lassoan/SlicerElastix).
 
 ![Alt text](screenshot01.png?raw=true "Screenshot")
 
