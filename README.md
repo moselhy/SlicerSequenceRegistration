@@ -105,3 +105,7 @@ All the required input is a volume sequence node in Slicer. In the future, the m
 
 ![Alt text](img/addvoltoseq.png?raw=true "Append Sequence with Scalar Volumes")
 
+## Help & Support
+
+Please write any questions about how to use the extension to the [Slicer Forum](https://discourse.slicer.org).
+View list of open issues or report new issues in the [project's issue tracker](https://github.com/moselhy/SlicerSequenceRegistration/issues).
