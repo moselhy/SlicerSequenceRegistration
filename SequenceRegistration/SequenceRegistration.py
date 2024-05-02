@@ -460,7 +460,7 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.elastixLogic.getTempDirectoryBase(), qt.QUrl.TolerantMode));
 
   def onKeepTemporaryFilesToggled(self, toggle):
-    self.logic.elastixLogic.deleteTemporaryFiles = toggle
+    self.logic.elastixLogic.deleteTemporaryFiles = not toggle
 
   def onShowRegistrationParametersDatabaseFolder(self):
     qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.elastixLogic.registrationParameterFilesDir, qt.QUrl.TolerantMode));
