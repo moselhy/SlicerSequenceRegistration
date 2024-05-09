@@ -41,6 +41,9 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.registrationInProgress = False
     self.logic = SequenceRegistrationLogic()
     self.logic.logCallback = self.addLog
+    
+    # JU 08/05/2024: Initialise the registerFixedVolumeToItself flag:
+    self.registerFixedVolumeToItself = False
 
     #
     # Parameters Area
@@ -132,6 +135,16 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.sequenceFixedItemIndexWidget.value = 0
     self.sequenceFixedItemIndexWidget.setToolTip("Set the frame of the input sequence to use as the fixed volume (that all other volumes will be registered to.")
     advancedFormLayout.addRow("Fixed frame index:", self.sequenceFixedItemIndexWidget)
+
+    #
+    # JU 08/05/2024: Added the option to register the fixed volume to itself (to replicate filters applied during processing steps)
+    #   default behaviour for the checkbox is FALSE (i.e. unchecked)
+    self.registerFixedVolumeToItselfCheckBox = qt.QCheckBox(" ")
+    self.registerFixedVolumeToItselfCheckBox.checked = False
+    label = qt.QLabel("Register Fixed volume to itself:")
+    label.setToolTip("Select to run the registration algorithm to the fixed volume.")
+    self.registerFixedVolumeToItselfCheckBox.setToolTip("Register Fixed volume to itself.")
+    advancedFormLayout.addRow(label, self.registerFixedVolumeToItselfCheckBox)
 
     # Sequence start index
     self.sequenceStartItemIndexWidget = ctk.ctkSliderWidget()
@@ -235,6 +248,8 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
     self.showDetailedLogDuringExecutionCheckBox.connect("toggled(bool)", self.onShowLogToggled)
     # Check if user selects to create a new preset
     self.registrationPresetSelector.connect("activated(int)", self.onCreatePresetPressed)
+    # JU 08/05/2024 connect the register-to-itself checkbox:
+    self.registerFixedVolumeToItselfCheckBox.connect("toggled(bool)", self.onRegisterToItselfToggled)
 
 
     # Add vertical spacer
@@ -436,10 +451,11 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
       endFrameIndex = int(self.sequenceEndItemIndexWidget.value)
       self.logic.elastixLogic.setCustomElastixBinDir(self.customElastixBinDirSelector.currentPath)
       self.logic.logStandardOutput = self.showDetailedLogDuringExecutionCheckBox.checked
+      # JU 08/05/2024: Appended input argument self.registerFixedVolumeToItself
       self.logic.registerVolumeSequence(self.inputSelector.currentNode(),
         self.outputVolumesSelector.currentNode(), self.outputTransformSelector.currentNode(),
         fixedFrameIndex, self.registrationPresetSelector.currentIndex, computeMovingToFixedTransform,
-        startFrameIndex, endFrameIndex)
+        startFrameIndex, endFrameIndex, self.registerFixedVolumeToItself)
     except Exception as e:
       print(e)
       self.addLog("Error: {0}".format(str(e)))
@@ -467,6 +483,10 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
 
   def onShowLogToggled(self, toggle):
     self.logic.elastixLogic.logStandardOutput = toggle
+
+  # JU 08/05/2024 connect the register-to-itself to the logic component:
+  def onRegisterToItselfToggled(self, toggle):
+    self.registerFixedVolumeToItself = toggle
 
 #
 # SequenceRegistrationLogic
@@ -500,8 +520,9 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         return browserNode
     return None
 
+  # JU 08/05/2024: Appended input argument registerFixedVolumeToItself with default value FALSE
   def registerVolumeSequence(self, inputVolSeq, outputVolSeq, outputTransformSeq, fixedVolumeItemNumber, presetIndex, computeMovingToFixedTransform = True,
-    startFrameIndex=None, endFrameIndex=None):
+    startFrameIndex=None, endFrameIndex=None, registeredFixedToItself=False):
     """
     computeMovingToFixedTransform: if True then moving->fixed else fixed->moving transforms are computed
     """
@@ -557,7 +578,8 @@ class SequenceRegistrationLogic(ScriptedLoadableModuleLogic):
         sequencesModule.logic().UpdateProxyNodesFromSequences(movingSeqBrowser)
         movingVolume = movingSeqBrowser.GetProxyNode(inputVolSeq)
 
-        if movingVolumeItemNumber != fixedVolumeItemNumber:
+        # JU 08/05/2024: Include the registered-to-itself flag value as part of the logic evaluation:
+        if (movingVolumeItemNumber != fixedVolumeItemNumber) | registeredFixedToItself:
           self.elastixLogic.registerVolumes(
             fixedVolume, movingVolume,
             outputVolumeNode = outputVol,
