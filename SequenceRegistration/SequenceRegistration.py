@@ -248,7 +248,8 @@ class SequenceRegistrationWidget(ScriptedLoadableModuleWidget):
 
   def setSequenceItemIndex(self, index):
     sequenceBrowserNode = self.logic.findBrowserForSequence(self.inputSelector.currentNode())
-    sequenceBrowserNode.SetSelectedItemNumber(int(index))
+    if sequenceBrowserNode is not None:
+      sequenceBrowserNode.SetSelectedItemNumber(int(index))
 
   def onCreatePresetPressed(self):
     if self.registrationPresetSelector.currentIndex != self.newPresetIndex:
